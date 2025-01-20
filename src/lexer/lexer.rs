@@ -39,24 +39,45 @@ impl Lexer {
             b'a'..=b'z' => {
                 let v = self.read_word();
                 match v.as_str() {
-                    "let" => token::Token::Let,
-                    "true" => token::Token::True,
-                    "false" => token::Token::False,
-                    _ => token::Token::Ident(v)
+                    "let" => {
+                        return token::Token::Let
+                    },
+                    "true" =>{ 
+                       return token::Token::True
+                    },
+                    "false" => {
+                        return token::Token::False
+                    },
+                    "func" => {
+                       return token::Token::Func
+                    },
+                    "if" => {
+                       return token::Token::If
+                    },
+                    "else" => {
+                        return token::Token::Else
+                    },
+                    _ => {
+                        return token::Token::Ident(v)
+                    }
                 }
             },
+            b';' => {
+                token::Token::Semicolon
+            }
             b'=' => {
                 token::Token::Assing
             },
             b'0'..=b'9' => {
                 let number = self.read_number();
-                token::Token::Int(number)
+                return token::Token::Int(number)
             },
             _ => token::Token::Illgl((self.ch as char).to_string())
         };
         self.read_char();
         return tok
     }
+
 
     fn read_number(&mut self) -> String{
         let pos = self.pos;
@@ -68,7 +89,7 @@ impl Lexer {
 
     fn read_word(&mut self) -> String{
         let pos = self.pos;
-        while self.ch.is_ascii_alphabetic() {
+        while self.ch.is_ascii_alphabetic(){
             self.read_char();
         }
         return String::from_utf8_lossy(&self.input[pos..self.pos]).to_string();
