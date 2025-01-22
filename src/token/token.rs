@@ -1,15 +1,19 @@
 use core::fmt;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Token {
     Ident(String),
     Semicolon,
     Let,
     Int(String),
     Assing,
+    Plus,
+    Minus,
     False,
     True,
     If,
+    Slash,
+    Asterisk,
     Else,
     Func,
     Illgl(String),
@@ -18,6 +22,10 @@ pub enum Token {
 impl fmt::Display for Token {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         return match self{
+            Token::Plus => write!(f, "+"),
+            Token::Minus => write!(f, "-"),
+            Token::Asterisk => write!(f, "*"),
+            Token::Slash => write!(f, "/"),
             Token::Let => write!(f, "Let"),
             Token::Ident(x) => write!(f, "Ident {}", x),
             Token::Semicolon => write!(f, ";"),

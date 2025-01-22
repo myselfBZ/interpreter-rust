@@ -72,6 +72,18 @@ impl Lexer {
                 let number = self.read_number();
                 return token::Token::Int(number)
             },
+            b'*' =>{
+                token::Token::Asterisk
+            },
+            b'+' => {
+                token::Token::Plus
+            },
+            b'-' => {
+                token::Token::Minus
+            },
+            b'/' => {
+                token::Token::Slash
+            }
             _ => token::Token::Illgl((self.ch as char).to_string())
         };
         self.read_char();
@@ -99,6 +111,23 @@ impl Lexer {
        while self.ch != b'\0'{
            println!("token {} ", self.next_token()) 
        } 
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::lexer::Lexer; 
+    use crate::token::Token;
+    #[test]
+    fn test_lexer(){
+        let x = "let x = 21 * 23 - ;";
+        let mut new_lexer = Lexer::new(String::from(x));
+        let expected = [Token::Let, Token::Ident(String::from("x")), Token::Assing, Token::Int(String::from("21")), Token::Asterisk, Token::Int(String::from("23")),
+        Token::Minus
+        ];
+        for tok in expected{
+            assert_eq!(new_lexer.next_token(), tok);
+        }
     }
 }
 
