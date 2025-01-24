@@ -1,10 +1,10 @@
 mod lexer;
 mod token;
 mod ast;
+mod parser;
 fn main() {
     let src = String::from("let x = 12; true false;;;;");
-    let mut l = lexer::Lexer::new(src);
-    match ast::ast::check_let(l.next_token()){
-        Ok(t) => println!("yaay {}", t) 
-    }
+    let l = lexer::Lexer::new(src);
+    let p = parser::Parser::new(Box::new(l));
+    p.hello();
 }

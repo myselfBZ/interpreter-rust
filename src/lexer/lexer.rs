@@ -1,4 +1,3 @@
-
 use crate::token;
 
 pub struct Lexer{
@@ -36,6 +35,7 @@ impl Lexer {
     pub fn next_token(&mut self) -> token::Token{
         self.skip_white();
         let tok = match self.ch{
+            b'\0' => return token::Token::Eof,
             b'a'..=b'z' => {
                 let v = self.read_word();
                 match v.as_str() {

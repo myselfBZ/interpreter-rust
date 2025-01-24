@@ -4,14 +4,16 @@ use std::fmt;
 #[derive(Debug, PartialEq)]
 pub enum Expression {
     Ident(String),
-    SomeExprs
+    SomeExprs,
+    NoExprsn
 }
 
 impl fmt::Display for Expression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         return match self{
             Expression::Ident(s) => write!(f, "identifier {}", s),
-            Expression::SomeExprs => write!(f, "we got something really illegal")
+            Expression::SomeExprs => write!(f, "we got something really illegal"),
+            Expression::NoExprsn => write!(f, "we are skippin' the expression for now")
         }
     }
 }

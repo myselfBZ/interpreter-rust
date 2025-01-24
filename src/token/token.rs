@@ -1,6 +1,6 @@
 use core::fmt;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Token {
     Ident(String),
     Semicolon,
@@ -17,11 +17,13 @@ pub enum Token {
     Else,
     Func,
     Illgl(String),
+    Eof,
 }
 
 impl fmt::Display for Token {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         return match self{
+            Token::Eof => write!(f, "the end"),
             Token::Plus => write!(f, "+"),
             Token::Minus => write!(f, "-"),
             Token::Asterisk => write!(f, "*"),
