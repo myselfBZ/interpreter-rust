@@ -4,6 +4,7 @@ use core::fmt;
 pub enum Token {
     Ident(String),
     Semicolon,
+    Bang,
     Let,
     Int(String),
     Assing,
@@ -25,6 +26,7 @@ impl fmt::Display for Token {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         return match self{
             Token::Return => write!(f, "return"),
+            Token::Bang => write!(f, "!"),
             Token::Eof => write!(f, "the end"),
             Token::Plus => write!(f, "+"),
             Token::Minus => write!(f, "-"),

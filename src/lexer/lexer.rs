@@ -71,6 +71,9 @@ impl Lexer {
             b'=' => {
                 token::Token::Assing
             },
+            b'!' =>{
+                token::Token::Bang
+            },
             b'0'..=b'9' => {
                 let number = self.read_number();
                 return token::Token::Int(number)

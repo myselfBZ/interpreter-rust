@@ -9,6 +9,10 @@ pub enum Expression {
     Boolean {
         token: token::Token,
         value:bool
+    },
+    PrefixExprsn {
+        token: token::Token,
+        exprsn: Box<Expression>
     }
 }
 
@@ -17,6 +21,7 @@ impl fmt::Display for Expression {
         return match self{
             Expression::Ident(s)=> write!(f, "{}", s),
             Expression::Boolean{token, value} =>  write!(f, " here is the statement: {} {}", token, value),
+            Expression::PrefixExprsn{token, exprsn} =>  write!(f, "PrefixExprsn: {token} {exprsn}"),
             Expression::Int(s)=> write!(f, "{}", s),
             Expression::NoExprsn => write!(f, "we are skippin' the expression for now")
         }

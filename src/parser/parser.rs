@@ -1,5 +1,4 @@
-use crate::{ast::ast::{self}, lexer::lexer, token::token};
-
+use crate::{ast::ast, lexer::lexer, token::token};
 
 pub struct Parser{
     cur_tok: token::Token,
@@ -34,6 +33,8 @@ impl Parser {
             token::Token::Int(_) => self.parse_int(),
             token::Token::True => self.parse_bool(),
             token::Token::False => self.parse_bool(),
+            token::Token::Minus => self.parse_prefix_ops(),
+            token::Token::Bang => self.parse_prefix_ops(),
             _ => ast::Expression::NoExprsn
         };
         left
@@ -107,6 +108,13 @@ impl Parser {
         } 
 
         return statements
+    }
+
+    fn parse_prefix_ops(&mut self) -> ast::Expression{
+        let tok = self.cur_tok.clone(); 
+        self.next_token();
+        let right = self.parse_expression();
+        return ast::Expression::PrefixExprsn { token: tok, exprsn: Box::new(right) }
     }
 
 }
@@ -188,6 +196,28 @@ mod tests {
         assert_eq!(stmnts, expected)
     }
 
+    #[test]
+    fn test_prefix_ops(){
+        let src = "!true;".to_string();
+        let lex = lexer::Lexer::new(src);
+        let mut p = parser::Parser::new(Box::new(lex));
+        let stmnts = p.parse_program();
+        if stmnts.len() != 1{
+            panic!("expected 1 got {}", stmnts.len())
+        }
+        let expected = [
+            ast::ast::Statement::ExprsStatement { token: token::Token::Bang, exprs: 
+                ast::ast::Expression::PrefixExprsn { 
+                    token: token::Token::Bang,
+                    exprsn: Box::new(ast::ast::Expression::Boolean { 
+                        token: token::Token::True, 
+                        value: true 
+                    })
+                }
+        }
+        ];
+        assert_eq!(stmnts[0], expected[0])
+    }
 
 }
 
