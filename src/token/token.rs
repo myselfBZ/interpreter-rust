@@ -29,7 +29,7 @@ impl fmt::Display for Token {
             Token::Asterisk => write!(f, "*"),
             Token::Slash => write!(f, "/"),
             Token::Let => write!(f, "Let"),
-            Token::Ident(x) => write!(f, "Ident {}", x),
+            Token::Ident(x) => write!(f, "{}", x),
             Token::Semicolon => write!(f, ";"),
             Token::Int(x) => write!(f, "Int {}", x),
             Token::Assing => write!(f, "="),

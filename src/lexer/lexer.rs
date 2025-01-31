@@ -107,11 +107,6 @@ impl Lexer {
         return String::from_utf8_lossy(&self.input[pos..self.pos]).to_string();
     }
 
-    pub fn preset(&mut self) {
-       while self.ch != b'\0'{
-           println!("token {} ", self.next_token()) 
-       } 
-    }
 }
 
 #[cfg(test)]

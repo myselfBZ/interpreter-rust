@@ -4,15 +4,13 @@ use std::fmt;
 #[derive(Debug, PartialEq)]
 pub enum Expression {
     Ident(String),
-    SomeExprs,
     NoExprsn
 }
 
 impl fmt::Display for Expression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         return match self{
-            Expression::Ident(s) => write!(f, "identifier {}", s),
-            Expression::SomeExprs => write!(f, "we got something really illegal"),
+            Expression::Ident(s)=> write!(f, "{}", s),
             Expression::NoExprsn => write!(f, "we are skippin' the expression for now")
         }
     }
@@ -23,7 +21,7 @@ impl fmt::Display for Expression {
 pub enum Statement {
    Let {
       token:token::Token, 
-      ident:String,
+      ident:Expression,
       exprs:Expression
    } 
 }
@@ -35,12 +33,3 @@ impl fmt::Display for Statement {
         }
     }
 }
-
-pub fn check_let(t:token::Token) -> Result<Statement, String>{
-    match t{
-        token::Token::Let => return Ok(Statement::Let { token: t, ident: "something".to_string(), exprs: Expression::SomeExprs }),
-        _ => return Err(String::from("oh nooo"))
-    }
-}
-
-
