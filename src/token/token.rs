@@ -1,6 +1,6 @@
 use core::fmt;
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Hash,Eq,Debug, PartialEq, Clone)]
 pub enum Token {
     Ident(String),
     Semicolon,

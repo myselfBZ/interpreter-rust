@@ -4,7 +4,7 @@ use crate::{ast::ast, lexer::lexer, token::token};
 pub struct Parser{
     cur_tok: token::Token,
     peek_tok: token::Token,
-    lexer : Box<lexer::Lexer>
+    lexer : Box<lexer::Lexer>,
 }
 
 impl Parser {
@@ -14,12 +14,43 @@ impl Parser {
         let p = Parser{lexer:Box::new(*lexer), cur_tok, peek_tok};
         p
     }
+
  
     fn parse_ident(&mut self) -> ast::Expression {
         return ast::Expression::Ident(self.cur_tok.to_string())
     }
 
-    fn parse_expression_stmnt(&mut self) -> Option<ast::Statement> {
+    fn parse_expression_statement(&mut self) -> Option<ast::Statement>{
+        let tok = self.cur_tok.clone();
+        let exprs = self.parse_expression();
+        if self.peek_tok == token::Token::Semicolon{
+            self.next_token();
+        }
+        return Some(ast::Statement::ExprsStatement { token: tok,  exprs })
+    }
+
+    fn parse_expression(&mut self) -> ast::Expression{
+        let left = match &self.cur_tok{
+            token::Token::Int(_) => self.parse_int(),
+            _ => ast::Expression::NoExprsn
+        };
+        left
+    } 
+
+    fn parse_int(&mut self) -> ast::Expression {
+        let literal = match &self.cur_tok{
+            token::Token::Int(s) => s,
+            _ => return ast::Expression::NoExprsn 
+        };
+        let int: i32 = match literal.parse(){
+            Ok(n) => n,
+            Err(_s) => return ast::Expression::NoExprsn
+        };
+        return ast::Expression::Int(int)    
+    }
+
+
+    fn parse_statemnt(&mut self) -> Option<ast::Statement> {
         match self.cur_tok {
            token::Token::Let => {
                return self.parse_let() 
@@ -27,7 +58,7 @@ impl Parser {
            token::Token::Return => {
                 return self.parse_return()
            },
-           _ => return None 
+           _ => return self.parse_expression_statement() 
         }
     }
 
@@ -60,11 +91,12 @@ impl Parser {
     pub fn parse_program(&mut self) -> Vec<ast::Statement>{
         let mut statements = vec![];
         while  self.cur_tok != token::Token::Eof{
-            let stmnt = self.parse_expression_stmnt();
+            let stmnt = self.parse_statemnt();
             match stmnt {
                 Some(n) =>  statements.push(n),
                 None => return statements
             }
+            println!("cur token {} peek  token is {} ", self.cur_tok, self.peek_tok);
             self.next_token();
         } 
 
@@ -76,7 +108,8 @@ impl Parser {
 
 #[cfg(test)]
 mod tests {
-    use crate::ast;
+    use crate::token::token;
+    use crate::{ast, lexer, parser};
     use crate::lexer::Lexer; 
     use crate::parser::Parser;
     #[test]
@@ -110,7 +143,23 @@ mod tests {
         };
         assert_eq!(statements[0], node)
     }
+
+    #[test]
+    fn test_int() {
+        let src = "12;".to_string();
+        let lex = lexer::Lexer::new(src);
+        let mut p = parser::Parser::new(Box::new(lex));
+        let stmnts = p.parse_program();
+        let expected = ast::ast::Statement::ExprsStatement { 
+            token: token::Token::Int("12".to_string()), 
+            exprs: ast::ast::Expression::Int(12) 
+        };
+        if stmnts.len() != 1{
+            panic!("expected 1 statement got {}", stmnts.len())
+        }
+        assert_eq!(stmnts[0], expected)
+    }
+
+
 }
-
-
 
