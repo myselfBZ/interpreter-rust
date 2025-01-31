@@ -57,6 +57,9 @@ impl Lexer {
                     "else" => {
                         return token::Token::Else
                     },
+                    "return" => {
+                        return token::Token::Return
+                    },
                     _ => {
                         return token::Token::Ident(v)
                     }

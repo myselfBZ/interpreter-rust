@@ -24,8 +24,19 @@ impl Parser {
            token::Token::Let => {
                return self.parse_let() 
            },
+           token::Token::Return => {
+                return self.parse_return()
+           },
            _ => return None 
         }
+    }
+
+    fn parse_return(&mut self) -> Option<ast::Statement> {
+       let return_tok = self.cur_tok.clone();     
+        while self.cur_tok != token::Token::Semicolon{
+            self.next_token();
+        }
+        return Some(ast::Statement::Return{ token: return_tok, exprs:ast::Expression::NoExprsn })
     }
 
     fn parse_let(&mut self) -> Option<ast::Statement>{
@@ -69,7 +80,7 @@ mod tests {
     use crate::lexer::Lexer; 
     use crate::parser::Parser;
     #[test]
-    fn test_parser(){
+    fn test_let(){
         let src = "let x = 2;".to_string();
         let lex = Lexer::new(src);
         let mut parser  = Parser::new(Box::new(lex));
@@ -80,6 +91,21 @@ mod tests {
         let node = ast::ast::Statement::Let { 
             token: crate::token::Token::Let, 
             ident: ast::ast::Expression::Ident("x".to_string()),
+            exprs: ast::ast::Expression::NoExprsn
+        };
+        assert_eq!(statements[0], node)
+    }
+    #[test]
+    fn test_return(){
+        let src = "return 12;".to_string();
+        let lex = Lexer::new(src);
+        let mut parser  = Parser::new(Box::new(lex));
+        let statements = parser.parse_program();
+        if statements.len() != 1{
+            panic!("expected only one statement got {}", statements.len())
+        }
+        let node = ast::ast::Statement::Return { 
+            token: crate::token::Token::Return, 
             exprs: ast::ast::Expression::NoExprsn
         };
         assert_eq!(statements[0], node)

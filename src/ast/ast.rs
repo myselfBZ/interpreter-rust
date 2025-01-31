@@ -23,13 +23,19 @@ pub enum Statement {
       token:token::Token, 
       ident:Expression,
       exprs:Expression
-   } 
+   },
+
+   Return {
+       token:token::Token,
+       exprs:Expression
+    }
 }
 
 impl fmt::Display for Statement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         return match self{
             Statement::Let{token, ident, exprs} =>  write!(f, " here is the statement: {} {} {}", token, ident, exprs),
+            Statement::Return{token, exprs} =>  write!(f, " here is the statement: {} {}", token, exprs),
         }
     }
 }

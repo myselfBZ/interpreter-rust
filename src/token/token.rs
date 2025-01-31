@@ -17,12 +17,14 @@ pub enum Token {
     Else,
     Func,
     Illgl(String),
+    Return,
     Eof,
 }
 
 impl fmt::Display for Token {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         return match self{
+            Token::Return => write!(f, "return"),
             Token::Eof => write!(f, "the end"),
             Token::Plus => write!(f, "+"),
             Token::Minus => write!(f, "-"),
