@@ -1,4 +1,4 @@
-use crate::{ast::ast, lexer::lexer, token::token};
+use crate::{ast::ast::{self}, lexer::lexer, token::token};
 
 
 pub struct Parser{
@@ -32,10 +32,16 @@ impl Parser {
     fn parse_expression(&mut self) -> ast::Expression{
         let left = match &self.cur_tok{
             token::Token::Int(_) => self.parse_int(),
+            token::Token::True => self.parse_bool(),
+            token::Token::False => self.parse_bool(),
             _ => ast::Expression::NoExprsn
         };
         left
     } 
+
+    fn parse_bool(&self) -> ast::Expression {
+        return ast::Expression::Boolean{ token:self.cur_tok.clone(), value: self.cur_tok == token::Token::True}
+    }
 
     fn parse_int(&mut self) -> ast::Expression {
         let literal = match &self.cur_tok{
@@ -158,6 +164,28 @@ mod tests {
             panic!("expected 1 statement got {}", stmnts.len())
         }
         assert_eq!(stmnts[0], expected)
+    }
+
+    #[test]
+    fn test_bool() {
+        let src = "false; true;".to_string();
+        let lex = lexer::Lexer::new(src);
+        let mut p = parser::Parser::new(Box::new(lex));
+        let stmnts = p.parse_program();
+        let expected = [ 
+            ast::ast::Statement::ExprsStatement { 
+                token: token::Token::False, 
+                exprs: ast::ast::Expression::Boolean { token: token::Token::False, value: false } 
+            },
+            ast::ast::Statement::ExprsStatement { 
+                token: token::Token::True, 
+                exprs: ast::ast::Expression::Boolean { token: token::Token::True, value: true } 
+            },
+        ];
+        if stmnts.len() != 2{
+            panic!("expected 1 statement got {}", stmnts.len())
+        }
+        assert_eq!(stmnts, expected)
     }
 
 
