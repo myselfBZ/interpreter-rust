@@ -25,7 +25,9 @@ pub enum Token {
     Gt,
     Lt,
     Rparen,
-    Lparen
+    Lparen,
+    Lbrace,
+    Rbrace
 }
 
 impl fmt::Display for Token {
@@ -34,6 +36,8 @@ impl fmt::Display for Token {
             Token::Return => write!(f, "return"),
             Token::Gt=> write!(f, ">"),
             Token::Lparen=> write!(f, "("),
+            Token::Lbrace=> write!(f, "{{"),
+            Token::Rbrace=> write!(f, "}}"),
             Token::Rparen=> write!(f, ")"),
             Token::Lt=> write!(f, "<"),
             Token::Eq => write!(f, "=="),

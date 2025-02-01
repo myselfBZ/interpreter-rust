@@ -18,6 +18,11 @@ pub enum Expression {
         left: Box<Expression>,
         right: Box<Expression>,
         oprt: String
+    },
+    IfExprsn{
+        condt: Box<Expression>,
+        conseq: Vec<Statement>,
+        alter: Vec<Statement>
     }
 }
 
@@ -25,6 +30,7 @@ impl fmt::Display for Expression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         return match self{
             Expression::Ident(s)=> write!(f, "{}", s),
+            Expression::IfExprsn{ condt, conseq, alter }=> write!(f, "{condt}\n, {:?}\n {:?}\n", conseq, alter),
             Expression::Boolean{token, value} =>  write!(f, " here is the statement: {} {}", token, value),
             Expression::PrefixExprsn{token, exprsn} =>  write!(f, "PrefixExprsn: {token} {exprsn}"),
             Expression::InfixExprsn{left, oprt,right} =>  write!(f, "InfixExprsn: {left} {oprt} {right} "),

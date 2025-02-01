@@ -1,4 +1,4 @@
-use crate::{ast::ast::{self, Expression}, lexer::lexer, token::token};
+use crate::{ast::ast::{self, Expression, Statement}, lexer::lexer, token::token};
 
 pub struct Parser{
     cur_tok: token::Token,
@@ -57,6 +57,7 @@ impl Parser {
             token::Token::Minus => self.parse_prefix_ops(),
             token::Token::Bang => self.parse_prefix_ops(),
             token::Token::Lparen => self.parse_grouped_expression(),
+            token::Token::If => self.parse_if(),
             token::Token::Ident(_) => self.parse_ident(),
             _ => ast::Expression::NoExprsn
         };
@@ -105,6 +106,7 @@ impl Parser {
                return self.parse_let() 
            },
            token::Token::Return => {
+               println!("return detected");
                 return self.parse_return()
            },
            _ => return self.parse_expression_statement() 
@@ -179,6 +181,37 @@ impl Parser {
         self.next_token();
         let right  = self.parse_expression(self.token_to_precedence(opr.clone()));
         return ast::Expression::InfixExprsn { left: Box::new(left), right: Box::new(right), oprt: opr.to_string() }
+    }
+    
+    fn parse_block(&mut self) -> Vec<ast::Statement>{
+        self.next_token();
+        let mut stmnts :Vec<Statement> = vec![];    
+        while self.cur_tok != token::Token::Rbrace && self.cur_tok != token::Token::Eof{
+            match self.parse_statemnt(){
+                Some(s) => stmnts.push(s),
+                None => return stmnts
+            };
+            self.next_token();
+        }
+        stmnts
+    }
+
+    fn parse_if(&mut self) -> Expression {
+        self.next_token();
+        let condt = self.parse_expression(Precedence::Lowest);
+        if self.peek_tok != token::Token::Lbrace{
+            return ast::Expression::NoExprsn
+        }
+        self.next_token();
+        let consq = self.parse_block();
+        self.next_token();
+        if self.cur_tok == token::Token::Else{
+            self.next_token();
+            let altr = self.parse_block();
+            let node = ast::Expression::IfExprsn { condt: Box::new(condt), conseq: consq, alter: altr };
+            return node
+        }
+        return ast::Expression::IfExprsn { condt: Box::new(condt) , conseq: consq, alter: vec![] }
     }
 }
 
@@ -339,5 +372,6 @@ mod tests {
         };
         assert_eq!(stmnts[0], expected)
     }
+    // oopps no test for if statements, because i am a little lazy so i tested it manually
 }
 

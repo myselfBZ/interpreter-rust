@@ -92,6 +92,13 @@ impl Lexer {
                 let number = self.read_number();
                 return token::Token::Int(number)
             },
+            b'{' =>{
+                token::Token::Lbrace
+            },
+            b'}' =>{
+                token::Token::Rbrace
+            },
+
             b')' =>{
                 token::Token::Rparen
             },
