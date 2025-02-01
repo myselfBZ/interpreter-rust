@@ -23,7 +23,9 @@ pub enum Token {
     Eq,
     NotEq,
     Gt,
-    Lt
+    Lt,
+    Rparen,
+    Lparen
 }
 
 impl fmt::Display for Token {
@@ -31,6 +33,8 @@ impl fmt::Display for Token {
         return match self{
             Token::Return => write!(f, "return"),
             Token::Gt=> write!(f, ">"),
+            Token::Lparen=> write!(f, "("),
+            Token::Rparen=> write!(f, ")"),
             Token::Lt=> write!(f, "<"),
             Token::Eq => write!(f, "=="),
             Token::NotEq => write!(f, "!="),

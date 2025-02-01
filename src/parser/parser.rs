@@ -40,6 +40,14 @@ impl Parser {
         return Some(ast::Statement::ExprsStatement { token: tok,  exprs })
     }
 
+    fn parse_grouped_expression(&mut self) -> ast::Expression {
+        self.next_token();
+        let node = self.parse_expression(Precedence::Lowest);
+        if self.peek_tok == token::Token::Rparen{
+            self.next_token();
+        }
+        return node
+    }
 
     fn parse_expression(&mut self, prec:Precedence) -> ast::Expression{
         let mut left = match &self.cur_tok{
@@ -48,6 +56,7 @@ impl Parser {
             token::Token::False => self.parse_bool(),
             token::Token::Minus => self.parse_prefix_ops(),
             token::Token::Bang => self.parse_prefix_ops(),
+            token::Token::Lparen => self.parse_grouped_expression(),
             token::Token::Ident(_) => self.parse_ident(),
             _ => ast::Expression::NoExprsn
         };
@@ -302,5 +311,33 @@ mod tests {
         }
     }
 
+    #[test]
+    fn test_grouped(){
+        let src = "(1 + 1) * 2".to_string();
+        let lex = lexer::Lexer::new(src);
+        let mut p = parser::Parser::new(Box::new(lex));
+        let stmnts = p.parse_program();
+
+
+        if stmnts.len() != 1{
+            panic!("expected 2 got {}", stmnts.len())
+        }
+
+
+        let expected = ast::ast::Statement::ExprsStatement { 
+            token: token::Token::Lparen, 
+            exprs: ast::ast::Expression::InfixExprsn { 
+                right: Box::new(ast::ast::Expression::Int(2)), 
+                left: Box::new(
+                    ast::ast::Expression::InfixExprsn { 
+                        left: Box::new(ast::ast::Expression::Int(1)), 
+                        right: Box::new(ast::ast::Expression::Int(1)), 
+                        oprt: "+".to_string() 
+                }), 
+                oprt: "*".to_string() 
+            }
+        };
+        assert_eq!(stmnts[0], expected)
+    }
 }
 

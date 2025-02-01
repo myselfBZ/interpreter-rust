@@ -92,6 +92,12 @@ impl Lexer {
                 let number = self.read_number();
                 return token::Token::Int(number)
             },
+            b')' =>{
+                token::Token::Rparen
+            },
+            b'(' =>{
+                token::Token::Lparen
+            },
             b'*' =>{
                 token::Token::Asterisk
             },
