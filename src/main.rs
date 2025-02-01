@@ -4,10 +4,11 @@ mod ast;
 mod parser;
 fn main() {
     let src = String::from("
-        if x > 1 {
-            return 12;
+        if b > a {
+            let x = 12 + 2;
+            return 21;
         } else {
-            let x = 12;
+            return 1;
         }
         ");
     let lexer = lexer::Lexer::new(src);

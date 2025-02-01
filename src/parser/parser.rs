@@ -130,11 +130,15 @@ impl Parser {
 
 
     fn parse_return(&mut self) -> Option<ast::Statement> {
-       let return_tok = self.cur_tok.clone();     
-        while self.cur_tok != token::Token::Semicolon{
-            self.next_token();
+        let return_tok = self.cur_tok.clone();     
+        self.next_token();
+        let return_value = self.parse_expression(Precedence::Lowest);
+        if self.peek_tok != token::Token::Semicolon{
+            return None;
         }
-        return Some(ast::Statement::Return{ token: return_tok, exprs:ast::Expression::NoExprsn })
+        // move to the semi-colon
+        self.next_token();
+        return Some(ast::Statement::Return{ token: return_tok, exprs: return_value })
     }
 
     fn parse_let(&mut self) -> Option<ast::Statement>{
@@ -144,10 +148,15 @@ impl Parser {
             _ => return None,
         }
         let name = self.parse_ident().to_string();
-        while self.cur_tok != token::Token::Semicolon{
-            self.next_token();
+        if self.peek_tok != token::Token::Assing{
+            return None
         }
-        return Some(ast::Statement::Let { token: let_tok, ident: ast::Expression::Ident(name), exprs: ast::Expression::NoExprsn })
+        self.next_token();
+        self.next_token();
+        let val = self.parse_expression(Precedence::Lowest);
+        // move to the Semicolon
+        self.next_token();
+        return Some(ast::Statement::Let { token: let_tok, ident: ast::Expression::Ident(name), exprs: val})
     }
 
     fn next_token(&mut self) {
@@ -234,7 +243,7 @@ mod tests {
         let node = ast::ast::Statement::Let { 
             token: crate::token::Token::Let, 
             ident: ast::ast::Expression::Ident("x".to_string()),
-            exprs: ast::ast::Expression::NoExprsn
+            exprs: ast::ast::Expression::Int(2)
         };
         assert_eq!(statements[0], node)
     }
@@ -249,7 +258,7 @@ mod tests {
         }
         let node = ast::ast::Statement::Return { 
             token: crate::token::Token::Return, 
-            exprs: ast::ast::Expression::NoExprsn
+            exprs: ast::ast::Expression::Int(12)
         };
         assert_eq!(statements[0], node)
     }
@@ -372,6 +381,52 @@ mod tests {
         };
         assert_eq!(stmnts[0], expected)
     }
-    // oopps no test for if statements, because i am a little lazy so i tested it manually
+
+
+    #[test]
+    fn test_if() {
+        let src = "if x > 1 {
+            let x = 2;
+            return 12;
+        } else {
+            let b = 2;
+            return 3;
+        }
+        ".to_string();
+        let lex = lexer::Lexer::new(src);
+        let mut p = parser::Parser::new(Box::new(lex));
+        let stmnts = p.parse_program();
+
+        if stmnts.len() != 1{
+            panic!("expected 1 got {}", stmnts.len())
+        }
+        let consq = vec![
+            ast::ast::Statement::Let { token: token::Token::Let, ident: ast::ast::Expression::Ident("x".to_string()), exprs: ast::ast::Expression::Int(2) },
+            ast::ast::Statement::Return { token: token::Token::Return, exprs: ast::ast::Expression::Int(12)},
+
+        ];
+        let smnts = vec![
+            ast::ast::Statement::Let { token: token::Token::Let, ident: ast::ast::Expression::Ident("b".to_string()), exprs: ast::ast::Expression::Int(2) },
+            ast::ast::Statement::Return { token: token::Token::Return, exprs: ast::ast::Expression::Int(3) },
+        ]; 
+
+        let expected = ast::ast::Statement::ExprsStatement { 
+            token: token::Token::If, 
+            exprs: ast::ast::Expression::IfExprsn { 
+                condt: Box::new(ast::ast::Expression::InfixExprsn { 
+                    left: Box::new(ast::ast::Expression::Ident("x".to_string())), 
+                    right: Box::new(ast::ast::Expression::Int(1)), 
+                    oprt: ">".to_string() 
+                }), 
+                conseq: consq, 
+                alter: smnts
+            } 
+        };
+
+        assert_eq!(stmnts[0], expected)
+    }
+
+
+
 }
 
