@@ -67,12 +67,26 @@ impl Lexer {
             },
             b';' => {
                 token::Token::Semicolon
+            },
+            b'>' => {
+                token::Token::Gt
+            },
+            b'<' => {
+                token::Token::Lt
             }
             b'=' => {
-                token::Token::Assing
+                if self.peek == b'='.into(){
+                    token::Token::Eq
+                } else{
+                    token::Token::Assing
+                }
             },
             b'!' =>{
-                token::Token::Bang
+                if self.peek == b'='.into(){
+                    token::Token::NotEq
+                } else{
+                    token::Token::Bang
+                }
             },
             b'0'..=b'9' => {
                 let number = self.read_number();

@@ -20,12 +20,20 @@ pub enum Token {
     Illgl(String),
     Return,
     Eof,
+    Eq,
+    NotEq,
+    Gt,
+    Lt
 }
 
 impl fmt::Display for Token {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         return match self{
             Token::Return => write!(f, "return"),
+            Token::Gt=> write!(f, ">"),
+            Token::Lt=> write!(f, "<"),
+            Token::Eq => write!(f, "=="),
+            Token::NotEq => write!(f, "!="),
             Token::Bang => write!(f, "!"),
             Token::Eof => write!(f, "the end"),
             Token::Plus => write!(f, "+"),

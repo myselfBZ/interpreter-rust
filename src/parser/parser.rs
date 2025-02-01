@@ -1,10 +1,22 @@
-use crate::{ast::ast, lexer::lexer, token::token};
+use crate::{ast::ast::{self, Expression}, lexer::lexer, token::token};
 
 pub struct Parser{
     cur_tok: token::Token,
     peek_tok: token::Token,
     lexer : Box<lexer::Lexer>,
 }
+
+#[derive(Debug, PartialEq, PartialOrd)]
+enum Precedence {
+    Lowest,
+    Equals,
+    LessGreater,
+    Sum,
+    Product,
+    Prefix,
+    Call
+}
+
 
 impl Parser {
     pub fn new(mut lexer:Box<lexer::Lexer>) -> Self{
@@ -21,22 +33,43 @@ impl Parser {
 
     fn parse_expression_statement(&mut self) -> Option<ast::Statement>{
         let tok = self.cur_tok.clone();
-        let exprs = self.parse_expression();
+        let exprs = self.parse_expression(Precedence::Lowest);
         if self.peek_tok == token::Token::Semicolon{
             self.next_token();
         }
         return Some(ast::Statement::ExprsStatement { token: tok,  exprs })
     }
 
-    fn parse_expression(&mut self) -> ast::Expression{
-        let left = match &self.cur_tok{
+
+    fn parse_expression(&mut self, prec:Precedence) -> ast::Expression{
+        let mut left = match &self.cur_tok{
             token::Token::Int(_) => self.parse_int(),
             token::Token::True => self.parse_bool(),
             token::Token::False => self.parse_bool(),
             token::Token::Minus => self.parse_prefix_ops(),
             token::Token::Bang => self.parse_prefix_ops(),
+            token::Token::Ident(_) => self.parse_ident(),
             _ => ast::Expression::NoExprsn
         };
+
+        while self.cur_tok != token::Token::Semicolon && self.token_to_precedence(self.peek_tok.clone()) > prec{
+            match &self.peek_tok {
+                token::Token::Plus|
+                    token::Token::Minus|
+                    token::Token::Asterisk|
+                    token::Token::Slash|
+                    token::Token::Eq|
+                    token::Token::Gt|
+                    token::Token::Lt|
+                    token::Token::NotEq => {
+                        self.next_token();
+                        left = self.parse_infix(left)
+                    }
+
+                _ => return Expression::NoExprsn
+            }
+        }
+
         left
     } 
 
@@ -68,6 +101,22 @@ impl Parser {
            _ => return self.parse_expression_statement() 
         }
     }
+
+
+    fn token_to_precedence(&self,tok:token::Token) -> Precedence{
+        match tok {
+            token::Token::Slash => return Precedence::Product,
+            token::Token::Gt => return Precedence::LessGreater,
+            token::Token::Lt => return Precedence::LessGreater,
+            token::Token::Asterisk => return Precedence::Product,
+            token::Token::Eq => return Precedence::Equals,
+            token::Token::NotEq => return Precedence::Product,
+            token::Token::Plus => return Precedence::Sum,
+            token::Token::Minus => return Precedence::Sum,
+            _ => Precedence::Lowest
+        }
+    }
+
 
     fn parse_return(&mut self) -> Option<ast::Statement> {
        let return_tok = self.cur_tok.clone();     
@@ -103,7 +152,6 @@ impl Parser {
                 Some(n) =>  statements.push(n),
                 None => return statements
             }
-            println!("cur token {} peek  token is {} ", self.cur_tok, self.peek_tok);
             self.next_token();
         } 
 
@@ -113,10 +161,16 @@ impl Parser {
     fn parse_prefix_ops(&mut self) -> ast::Expression{
         let tok = self.cur_tok.clone(); 
         self.next_token();
-        let right = self.parse_expression();
+        let right = self.parse_expression(Precedence::Lowest);
         return ast::Expression::PrefixExprsn { token: tok, exprsn: Box::new(right) }
     }
 
+    fn parse_infix(&mut self, left:ast::Expression) -> ast::Expression {
+        let opr = self.cur_tok.clone();
+        self.next_token();
+        let right  = self.parse_expression(self.token_to_precedence(opr.clone()));
+        return ast::Expression::InfixExprsn { left: Box::new(left), right: Box::new(right), oprt: opr.to_string() }
+    }
 }
 
 
@@ -217,6 +271,35 @@ mod tests {
         }
         ];
         assert_eq!(stmnts[0], expected[0])
+    }
+    #[test]
+    fn test_infix(){
+        let src = "1+1; 1+2*3;".to_string();
+        let lex = lexer::Lexer::new(src);
+        let mut p = parser::Parser::new(Box::new(lex));
+        let stmnts = p.parse_program();
+        if stmnts.len() != 2{
+            panic!("expected 2 got {}", stmnts.len())
+        }
+        let expected = [
+            ast::ast::Statement::ExprsStatement { token: token::Token::Int("1".to_string()), 
+            exprs: ast::ast::Expression::InfixExprsn { 
+                left: Box::new(ast::ast::Expression::Int(1)), 
+                right: Box::new(ast::ast::Expression::Int(1)), 
+                oprt: "+".to_string() 
+            }
+        },
+        ast::ast::Statement::ExprsStatement { token: token::Token::Int("1".to_string()), 
+            exprs: ast::ast::Expression::InfixExprsn { 
+                left: Box::new(ast::ast::Expression::Int(1)), 
+                right: Box::new(ast::ast::Expression::InfixExprsn { left: Box::new(ast::ast::Expression::Int(2)), right: Box::new(ast::ast::Expression::Int(3)), oprt: "*".to_string() }), 
+                oprt: "+".to_string() 
+            }
+        },
+        ];
+        for (i, v) in stmnts.iter().enumerate(){
+           assert_eq!(*v, expected[i]) 
+        }
     }
 
 }

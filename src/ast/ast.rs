@@ -13,6 +13,11 @@ pub enum Expression {
     PrefixExprsn {
         token: token::Token,
         exprsn: Box<Expression>
+    },
+    InfixExprsn {
+        left: Box<Expression>,
+        right: Box<Expression>,
+        oprt: String
     }
 }
 
@@ -22,6 +27,7 @@ impl fmt::Display for Expression {
             Expression::Ident(s)=> write!(f, "{}", s),
             Expression::Boolean{token, value} =>  write!(f, " here is the statement: {} {}", token, value),
             Expression::PrefixExprsn{token, exprsn} =>  write!(f, "PrefixExprsn: {token} {exprsn}"),
+            Expression::InfixExprsn{left, oprt,right} =>  write!(f, "InfixExprsn: {left} {oprt} {right} "),
             Expression::Int(s)=> write!(f, "{}", s),
             Expression::NoExprsn => write!(f, "we are skippin' the expression for now")
         }
