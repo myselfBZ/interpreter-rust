@@ -12,7 +12,7 @@ impl Lexer {
     pub fn new(input:String) -> Self {
         let mut l = Lexer{input:input.into_bytes(), ch:0, pos:0, peek:0};
         l.read_char();
-        return l
+        l
     }
 
     fn read_char(&mut self){
@@ -41,6 +41,9 @@ impl Lexer {
                 match v.as_str() {
                     "let" => {
                         return token::Token::Let
+                    },
+                    "fn" => {
+                        return token::Token::Func
                     },
                     "true" =>{ 
                        return token::Token::True
@@ -80,6 +83,9 @@ impl Lexer {
                 } else{
                     token::Token::Assing
                 }
+            },
+            b',' => {
+                token::Token::Comma
             },
             b'!' =>{
                 if self.peek == b'='.into(){

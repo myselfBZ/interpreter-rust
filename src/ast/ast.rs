@@ -23,6 +23,10 @@ pub enum Expression {
         condt: Box<Expression>,
         conseq: Vec<Statement>,
         alter: Vec<Statement>
+    },
+    FnExprsn{
+        params: Vec<Expression>,
+        body: Vec<Statement>
     }
 }
 
@@ -31,6 +35,7 @@ impl fmt::Display for Expression {
         return match self{
             Expression::Ident(s)=> write!(f, "{}", s),
             Expression::IfExprsn{ condt, conseq, alter }=> write!(f, "{condt}\n, {:?}\n {:?}\n", conseq, alter),
+            Expression::FnExprsn{ params, body }=> write!(f, "FUNCTION params: {:?} Body: {:?}", params, body),
             Expression::Boolean{token, value} =>  write!(f, " here is the statement: {} {}", token, value),
             Expression::PrefixExprsn{token, exprsn} =>  write!(f, "PrefixExprsn: {token} {exprsn}"),
             Expression::InfixExprsn{left, oprt,right} =>  write!(f, "InfixExprsn: {left} {oprt} {right} "),

@@ -27,7 +27,8 @@ pub enum Token {
     Rparen,
     Lparen,
     Lbrace,
-    Rbrace
+    Rbrace,
+    Comma
 }
 
 impl fmt::Display for Token {
@@ -35,6 +36,7 @@ impl fmt::Display for Token {
         return match self{
             Token::Return => write!(f, "return"),
             Token::Gt=> write!(f, ">"),
+            Token::Comma=> write!(f, ","),
             Token::Lparen=> write!(f, "("),
             Token::Lbrace=> write!(f, "{{"),
             Token::Rbrace=> write!(f, "}}"),

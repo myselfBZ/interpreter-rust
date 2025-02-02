@@ -7,14 +7,12 @@ pub struct Parser{
 }
 
 #[derive(Debug, PartialEq, PartialOrd)]
-enum Precedence {
+enum Precedence{
     Lowest,
     Equals,
     LessGreater,
     Sum,
     Product,
-    Prefix,
-    Call
 }
 
 
@@ -22,13 +20,12 @@ impl Parser {
     pub fn new(mut lexer:Box<lexer::Lexer>) -> Self{
         let cur_tok = lexer.next_token();
         let peek_tok = lexer.next_token();
-        let p = Parser{lexer:Box::new(*lexer), cur_tok, peek_tok};
-        p
+        Parser{lexer:Box::new(*lexer), cur_tok, peek_tok}
     }
 
  
     fn parse_ident(&mut self) -> ast::Expression {
-        return ast::Expression::Ident(self.cur_tok.to_string())
+        ast::Expression::Ident(self.cur_tok.to_string())
     }
 
     fn parse_expression_statement(&mut self) -> Option<ast::Statement>{
@@ -37,7 +34,7 @@ impl Parser {
         if self.peek_tok == token::Token::Semicolon{
             self.next_token();
         }
-        return Some(ast::Statement::ExprsStatement { token: tok,  exprs })
+        Some(ast::Statement::ExprsStatement { token: tok,  exprs })
     }
 
     fn parse_grouped_expression(&mut self) -> ast::Expression {
@@ -46,13 +43,14 @@ impl Parser {
         if self.peek_tok == token::Token::Rparen{
             self.next_token();
         }
-        return node
+        node
     }
 
     fn parse_expression(&mut self, prec:Precedence) -> ast::Expression{
         let mut left = match &self.cur_tok{
             token::Token::Int(_) => self.parse_int(),
             token::Token::True => self.parse_bool(),
+            token::Token::Func => self.parse_func(),
             token::Token::False => self.parse_bool(),
             token::Token::Minus => self.parse_prefix_ops(),
             token::Token::Bang => self.parse_prefix_ops(),
@@ -83,8 +81,44 @@ impl Parser {
         left
     } 
 
+    fn parse_params(&mut self) -> Vec<ast::Expression>{
+        let mut params: Vec<Expression> = vec![];
+        self.next_token();
+
+        if self.peek_tok == token::Token::Rparen{
+            return params
+        }
+
+
+        self.next_token();
+
+
+        let ident = ast::Expression::Ident(self.cur_tok.to_string());
+
+        params.push(ident);
+
+
+        while self.peek_tok == token::Token::Comma{
+            self.next_token();
+            self.next_token();
+            let ident = self.parse_ident();
+            params.push(ident);
+        }
+
+        params
+
+    }
+
+    fn parse_func(&mut self) -> ast::Expression {
+        let params = self.parse_params();
+        self.next_token();
+        self.next_token();
+        let body = self.parse_block();
+        ast::Expression::FnExprsn { params, body }
+    }
+
     fn parse_bool(&self) -> ast::Expression {
-        return ast::Expression::Boolean{ token:self.cur_tok.clone(), value: self.cur_tok == token::Token::True}
+        ast::Expression::Boolean{ token:self.cur_tok.clone(), value: self.cur_tok == token::Token::True}
     }
 
     fn parse_int(&mut self) -> ast::Expression {
@@ -96,34 +130,34 @@ impl Parser {
             Ok(n) => n,
             Err(_s) => return ast::Expression::NoExprsn
         };
-        return ast::Expression::Int(int)    
+        ast::Expression::Int(int)    
     }
 
 
     fn parse_statemnt(&mut self) -> Option<ast::Statement> {
         match self.cur_tok {
            token::Token::Let => {
-               return self.parse_let() 
+               self.parse_let() 
            },
            token::Token::Return => {
                println!("return detected");
-                return self.parse_return()
+               self.parse_return()
            },
-           _ => return self.parse_expression_statement() 
+           _ => self.parse_expression_statement() 
         }
     }
 
 
     fn token_to_precedence(&self,tok:token::Token) -> Precedence{
         match tok {
-            token::Token::Slash => return Precedence::Product,
-            token::Token::Gt => return Precedence::LessGreater,
-            token::Token::Lt => return Precedence::LessGreater,
-            token::Token::Asterisk => return Precedence::Product,
-            token::Token::Eq => return Precedence::Equals,
-            token::Token::NotEq => return Precedence::Product,
-            token::Token::Plus => return Precedence::Sum,
-            token::Token::Minus => return Precedence::Sum,
+            token::Token::Slash =>  Precedence::Product,
+            token::Token::Gt =>  Precedence::LessGreater,
+            token::Token::Lt =>  Precedence::LessGreater,
+            token::Token::Asterisk =>  Precedence::Product,
+            token::Token::Eq =>  Precedence::Equals,
+            token::Token::NotEq =>  Precedence::Product,
+            token::Token::Plus =>  Precedence::Sum,
+            token::Token::Minus =>  Precedence::Sum,
             _ => Precedence::Lowest
         }
     }
@@ -138,7 +172,7 @@ impl Parser {
         }
         // move to the semi-colon
         self.next_token();
-        return Some(ast::Statement::Return{ token: return_tok, exprs: return_value })
+        Some(ast::Statement::Return{ token: return_tok, exprs: return_value })
     }
 
     fn parse_let(&mut self) -> Option<ast::Statement>{
@@ -156,7 +190,7 @@ impl Parser {
         let val = self.parse_expression(Precedence::Lowest);
         // move to the Semicolon
         self.next_token();
-        return Some(ast::Statement::Let { token: let_tok, ident: ast::Expression::Ident(name), exprs: val})
+        Some(ast::Statement::Let { token: let_tok, ident: ast::Expression::Ident(name), exprs: val})
     }
 
     fn next_token(&mut self) {
@@ -175,21 +209,21 @@ impl Parser {
             self.next_token();
         } 
 
-        return statements
+        statements
     }
 
     fn parse_prefix_ops(&mut self) -> ast::Expression{
         let tok = self.cur_tok.clone(); 
         self.next_token();
         let right = self.parse_expression(Precedence::Lowest);
-        return ast::Expression::PrefixExprsn { token: tok, exprsn: Box::new(right) }
+        ast::Expression::PrefixExprsn { token: tok, exprsn: Box::new(right) }
     }
 
     fn parse_infix(&mut self, left:ast::Expression) -> ast::Expression {
         let opr = self.cur_tok.clone();
         self.next_token();
         let right  = self.parse_expression(self.token_to_precedence(opr.clone()));
-        return ast::Expression::InfixExprsn { left: Box::new(left), right: Box::new(right), oprt: opr.to_string() }
+        ast::Expression::InfixExprsn { left: Box::new(left), right: Box::new(right), oprt: opr.to_string() }
     }
     
     fn parse_block(&mut self) -> Vec<ast::Statement>{
@@ -220,7 +254,7 @@ impl Parser {
             let node = ast::Expression::IfExprsn { condt: Box::new(condt), conseq: consq, alter: altr };
             return node
         }
-        return ast::Expression::IfExprsn { condt: Box::new(condt) , conseq: consq, alter: vec![] }
+        ast::Expression::IfExprsn { condt: Box::new(condt) , conseq: consq, alter: vec![] }
     }
 }
 
@@ -422,11 +456,41 @@ mod tests {
                 alter: smnts
             } 
         };
-
         assert_eq!(stmnts[0], expected)
     }
 
 
+
+    #[test]
+    fn test_fn(){
+        let src = "
+            fn(param, paramsecond){
+                let x = 12;
+                return 12;
+            }
+        ".to_string();
+        let lex = lexer::Lexer::new(src);
+        let mut p = parser::Parser::new(Box::new(lex));
+        let stmnts = p.parse_program();
+
+        if stmnts.len() != 1{
+            panic!("expected 1 got {}", stmnts.len())
+        }
+        let expected = ast::ast::Statement::ExprsStatement { 
+            token: token::Token::Func, 
+            exprs:  ast::ast::Expression::FnExprsn { 
+                params: vec![
+                    ast::ast::Expression::Ident("param".to_string()),
+                    ast::ast::Expression::Ident("paramsecond".to_string())
+                ], 
+                body: vec![
+                    ast::ast::Statement::Let { token: token::Token::Let, exprs: ast::ast::Expression::Int(12), ident: ast::ast::Expression::Ident("x".to_string()) },
+                    ast::ast::Statement::Return { token: token::Token::Return, exprs: ast::ast::Expression::Int(12)}, 
+                ] 
+            }
+        };
+        assert_eq!(stmnts[0], expected)
+    }
 
 }
 
