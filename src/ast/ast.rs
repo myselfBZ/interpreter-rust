@@ -32,7 +32,7 @@ pub enum Expression {
 
 impl fmt::Display for Expression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        return match self{
+        match self{
             Expression::Ident(s)=> write!(f, "{}", s),
             Expression::IfExprsn{ condt, conseq, alter }=> write!(f, "{condt}\n, {:?}\n {:?}\n", conseq, alter),
             Expression::FnExprsn{ params, body }=> write!(f, "FUNCTION params: {:?} Body: {:?}", params, body),
@@ -66,7 +66,7 @@ pub enum Statement {
 
 impl fmt::Display for Statement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        return match self{
+        match self{
             Statement::Let{token, ident, exprs} =>  write!(f, " here is the statement: {} {} {}", token, ident, exprs),
             Statement::ExprsStatement{token, exprs} =>  write!(f, "{} {}", token, exprs),
             Statement::Return{token, exprs} =>  write!(f, " here is the statement: {} {}", token, exprs),
